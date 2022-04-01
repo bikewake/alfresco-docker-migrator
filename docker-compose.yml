@@ -1,17 +1,9 @@
-# This docker-compose file will spin up an ACS cluster on a local host or on a server and it requires a minimum of 12GB Memory to distribute among containers.
-# Limit container memory and assign X percentage to JVM.  There are couple of ways to allocate JVM Memory for ACS Containers
-# For example: 'JAVA_OPTS: "$JAVA_OPTS -XX:+PrintFlagsFinal -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"'
-# See Oracle docs (https://docs.oracle.com/javase/9/gctuning/parallel-collector1.htm#JSGCT-GUID-CAB83393-3438-44ED-98F0-D15641B43C7D).
-# If the container memory is not explicitly set then the flags above will set the max heap default to 1/4 of the container's memory, which may not be ideal.
-# For performance tuning, assign the container memory and give a percentage of it to the JVM.
-
-# Using version 2 as 3 does not support resource constraint options (cpu_*, mem_* limits) for non swarm mode in Compose
-version: "2"
+version: "3.7"
 
 services:
   alfresco:
     image: alfresco/alfresco-content-repository-community:7.2.0
-    mem_limit: 1600m
+    container_name: alfresco
     environment:
       JAVA_TOOL_OPTIONS: "
         -Dencryption.keystore.type=JCEKS
@@ -46,10 +38,13 @@ services:
         -Dcsrf.filter.enabled=false
         -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
         "
+    volumes:
+      - bikefresco-acs-volume:/usr/local/tomcat/alf_data/
+      - bikefresco-log-volume:/usr/local/tomcat/logs
 
   transform-core-aio:
     image: alfresco/alfresco-transform-core-aio:2.5.7
-    mem_limit: 1536m
+    container_name: transform-core-aio
     environment:
       JAVA_OPTS: " -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
     ports:
@@ -57,7 +52,7 @@ services:
 
   share:
     image: alfresco/alfresco-share:7.2.0
-    mem_limit: 1g
+    container_name: share
     environment:
       REPO_HOST: "alfresco"
       REPO_PORT: "8080"
@@ -72,7 +67,7 @@ services:
 
   postgres:
     image: postgres:13.3
-    mem_limit: 512m
+    container_name: postgres
     environment:
       - POSTGRES_PASSWORD=alfresco
       - POSTGRES_USER=alfresco
@@ -83,7 +78,7 @@ services:
 
   solr6:
     image: alfresco/alfresco-search-services:2.0.3
-    mem_limit: 2g
+    container_name: solr6
     environment:
       # Solr needs to know how to register itself with Alfresco
       SOLR_ALFRESCO_HOST: "alfresco"
@@ -104,7 +99,7 @@ services:
 
   activemq:
     image: alfresco/alfresco-activemq:5.16.4-jre11-centos7
-    mem_limit: 1g
+    container_name: activemq
     ports:
       - "8161:8161" # Web Console
       - "5672:5672" # AMQP
@@ -113,7 +108,7 @@ services:
 
   proxy:
     image: alfresco/alfresco-acs-nginx:3.2.0
-    mem_limit: 128m
+    container_name: nginx
     environment:
       DISABLE_PROMETHEUS: "true"
       DISABLE_SYNCSERVICE: "true"
@@ -125,3 +120,7 @@ services:
     links:
       - alfresco
       - share
+volumes:
+  bikefresco-acs-volume:
+  bikefresco-log-volume:
+
