@@ -42,6 +42,14 @@ services:
       - bikefresco-acs-volume:/usr/local/tomcat/alf_data/
       - bikefresco-log-volume:/usr/local/tomcat/logs
 
+  cron:
+    container_name: cron
+    build:
+      dockerfile: ./Dockerfile
+      context: ./cron-logrotate
+    volumes:
+      - bikefresco-log-volume:/usr/local/tomcat/logs
+
   transform-core-aio:
     image: alfresco/alfresco-transform-core-aio:2.5.7
     container_name: transform-core-aio
