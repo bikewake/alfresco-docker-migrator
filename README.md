@@ -81,5 +81,3 @@ shutdown with
 
     docker compose down
 
-
-### Created by www.bikefresco.com
