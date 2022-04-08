@@ -1,83 +1,75 @@
-# Cleaning up Alfresco repository Tomcat log files
-docker container cleaning log files periodically with cron logrotate added to Alfresco composer
 
-## How to startup Alfresco with cron logrotate container
+# Backup and restore Alfresco from Docker Instance
 
-run to start up Alfresco instance:
+### Based on Alfresco docker deployment with build tools: Docker, GitBash
 
-    docker compose up --build -d 
+First start Maria Db, Activemq, with build of cron-logrotate-backup helping container with backup volume.
 
-Verify Tomcat log files:
+    ./first-base.sh up 
 
-    docker exec alfresco ls -l logs
-or
+Start Alfresco Instance.
 
-    docker exec cron ls -l usr/local/tomcat/logs
+    ./run-instance.sh up
 
+Open Alfresco in browser with url [http://localhost:8180/share/](http://localhost:8180/share/) user admin, password admin, spend a little time creating sites
+uploading documents for later review of restored backup data.
 
-and see growing log like this:
+Stop Alfresco with Ctrl-C and purge Solr volume data, Alfresco repository volume and Maria data volume are not purged.
 
-    $ docker exec alfresco ls -l logs
-    total 2728
-    -rw-r----- 1 alfresco alfresco   56968 Apr  1 08:35 alfresco.log
-    -rw-r----- 1 alfresco alfresco   13070 Apr  1 08:34 catalina.2022-04-01.log
-    -rw-r----- 1 alfresco alfresco       0 Apr  1 07:57 host-manager.2022-04-01.log
-    -rw-r----- 1 alfresco alfresco     694 Apr  1 08:33 localhost.2022-04-01.log
-    -rw-r----- 1 alfresco alfresco 2707432 Apr  1 10:08 localhost_access_log.2022-04-01.txt
-    -rw-r----- 1 alfresco alfresco       0 Apr  1 07:57 manager.2022-04-01.log
+    ./run-instance.sh purge
 
-localhost_access_log file could grow up to 7GB per day on development server used occasionally by few testers doing just few clicks per day.
+Run backup of Sql database and Alfresco data file repository, script will generate .sql and .gz in local file system outside of docker containers.
 
-Verify that cron is set
+    ./sql-dump.sh  
 
-    docker exec cron crontab -l
+Backup files are saved on local file system, now it is safe to purge all docker containers
 
-Result job to run log clean up at 4 in the morning every day
+    ./first-base.sh purge
 
-    0 4 * * * root /usr/sbin/logrotate /etc/logrotate.d/alfresco
+Verify sql backup file is present in local file system
 
-Verify logrotate configuration file
+    ls -l *.sql
 
-    docker exec cron cat  etc/logrotate.d/alfresco
+Verify repository backup file is present in local file system
 
-Result, notice postrotate script delete files older than 4 days
+    ls -l backup/*.gz
 
-    /usr/local/tomcat/logs/*.txt {
-      su root root
-      daily
-      rotate 10
-      compress
-      copytruncate
-      missingok
-      nomail
-      postrotate
-        /usr/bin/find /usr/local/tomcat/logs/ -mtime +4 -name alfresco.log.\* -delete
-        /usr/bin/find /usr/local/tomcat/logs/ -mtime +4 -name \*.gz\* -delete
-        /usr/bin/find /usr/local/tomcat/logs/ -mtime +4 -name \*.txt\* -delete
-        /usr/bin/find /usr/local/tomcat/logs/ -mtime +4 -name \*.log\* -delete
-      endscript
-      dateext
-      size 50M
-    }
+## Restore Backup steps
 
+Start Maria DB and create volumes where backup data will be restored.
 
-force logrotate to run immediately for testing purpose
+    ./first-base.sh up    
 
-    docker exec cron logrotate -f etc/logrotate.d/alfresco
+Verify Alfresco database exist.
 
-see compressed log result
+    docker exec postgres psql -U alfresco -l
 
-    $ docker exec cron ls -l usr/local/tomcat/logs
-    total 364
-    -rw-r----- 1 33000 33000 225363 Apr  1 13:35 alfresco.log
-    -rw-r----- 1 33000 33000  46406 Apr  1 13:34 catalina.2022-04-01.log
-    -rw-r----- 1 33000 33000      0 Apr  1 09:57 host-manager.2022-04-01.log
-    -rw-r----- 1 33000 33000   2627 Apr  1 13:33 localhost.2022-04-01.log
-    -rw-r----- 1 33000 33000   3471 Apr  1 13:42 localhost_access_log.2022-04-01.txt
-    -rw-r----- 1 33000 33000  74764 Apr  1 13:42 localhost_access_log.2022-04-01.txt-20220401.gz
-    -rw-r----- 1 33000 33000      0 Apr  1 09:57 manager.2022-04-01.log
+Verify Alfresco database is empty.
 
-shutdown with
+    docker exec postgres bin/bash -c "PGPASSWORD=alfresco psql --username alfresco alfresco -c \"\dt+\""
 
-    docker compose down
+Restore Alfresco Sql database
 
+    ./restore-dump.sh
+
+Verify Alfresco Sql tables are created
+
+    docker exec postgres bin/bash -c "PGPASSWORD=alfresco psql --username alfresco alfresco -c \"\dt+\""
+
+Verify Alfresco data file system is empty
+
+    docker exec cron ls -l usr/local/tomcat/alf_data
+
+Restore Alfresco data from backup file
+
+    ./data-restore.sh
+
+Verify Alfresco data file system is not empty
+
+    docker exec cron ls -l usr/local/tomcat/alf_data
+
+Start Alfresco instance again
+
+    ./run-instance.sh up
+
+Open Alfresco [http://localhost:8180/share/](http://localhost:8180/share/) and verify backup data are restored.
