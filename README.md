@@ -3,7 +3,7 @@
 
 ### Based on Alfresco docker deployment with build tools: Docker, GitBash
 
-First start Maria Db, Activemq, with build of cron-logrotate-backup helping container with backup volume.
+First start Postgres Db, Activemq, with build of cron-logrotate-backup helping container with backup volume.
 
     ./first-base.sh up 
 
