@@ -15,7 +15,9 @@ RUN dos2unix /etc/logrotate.d/alfresco
 RUN dnf install -y cronie && dnf clean all
 
 RUN mkdir "/usr/local/tomcat"
+RUN mkdir "/usr/local/tomcat/alf_data"
 RUN mkdir "/usr/local/tomcat/logs"
+RUN mkdir "/usr/local/tomcat/backup"
 
 RUN rm -rf /etc/localtime
 RUN ln -s /usr/share/zoneinfo/Europe/Bratislava /etc/localtime

@@ -1,0 +1,60 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:13.3
+    container_name: postgres
+    environment:
+      - POSTGRES_PASSWORD=alfresco
+      - POSTGRES_USER=alfresco
+      - POSTGRES_DB=alfresco
+    command: postgres -c max_connections=300 -c log_min_messages=LOG
+    ports:
+      - "5432:5432"
+
+  alfresco-migrator-activemq:
+    image: alfresco/alfresco-activemq:5.16.4-jre11-centos7
+    container_name: activemq
+    ports:
+      - "8161:8161" # Web Console
+      - "5672:5672" # AMQP
+      - "61616:61616" # OpenWire
+      - "61613:61613" # STOMP
+    networks:
+      - default
+
+  cron:
+    container_name: cron
+    build:
+      dockerfile: ./Dockerfile
+      context: ./cron-logrotate-backup
+    volumes:
+      - alfresco-migrator-acs-log-volume:/usr/local/tomcat/logs
+      - alfresco-migrator-acs-volume:/usr/local/tomcat/alf_data
+      - alfresco-migrator-acs-backup-volume:/usr/local/tomcat/backup
+    networks:
+      - default
+
+  transform-core-aio:
+    image: alfresco/alfresco-transform-core-aio:2.5.7
+    container_name: transform-core-aio
+    environment:
+      JAVA_OPTS: " -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
+    ports:
+      - "8090:8090"
+    networks:
+      - default
+
+volumes:
+  alfresco-migrator-db-volume:
+    external: true
+  alfresco-migrator-acs-volume:
+    external: true
+  alfresco-migrator-acs-log-volume:
+    external: true
+  alfresco-migrator-acs-backup-volume:
+    external: true
+
+networks:
+  default:
+    driver: bridge
+
