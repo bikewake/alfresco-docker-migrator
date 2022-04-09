@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cp dump*.sql backup/dump.sql
+
 docker exec postgres psql -U alfresco -l
 
 docker exec postgres bin/bash -c "PGPASSWORD=alfresco psql --username alfresco alfresco -c \"\dt+\""
