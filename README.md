@@ -14,7 +14,7 @@ Start Alfresco Instance.
 Open Alfresco in browser with url [http://localhost:8180/share/](http://localhost:8180/share/) user admin, password admin, spend a little time creating sites
 uploading documents for later review of restored backup data.
 
-Stop Alfresco with Ctrl-C and purge Solr volume data, Alfresco repository volume and Maria data volume are not purged.
+Stop Alfresco with Ctrl-C and purge Solr volume data, Alfresco repository volume and Postgres data volume are not purged.
 
     ./run-instance.sh purge
 
@@ -36,7 +36,7 @@ Verify repository backup file is present in local file system
 
 ## Restore Backup steps
 
-Start Maria DB and create volumes where backup data will be restored.
+Start Postgres and create volumes where backup data will be restored.
 
     ./first-base.sh up    
 
