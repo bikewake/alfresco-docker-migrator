@@ -1,5 +1,5 @@
 
-# Backup and restore Alfresco from Docker Instance
+# Backup and Restore Alfresco from Docker Instance
 
 ### Based on Alfresco docker deployment with build tools: Docker, GitBash
 
