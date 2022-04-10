@@ -11,7 +11,7 @@ Start Alfresco Instance.
 
     ./run-instance.sh up
 
-Open Alfresco in browser with url [http://localhost:8180/share/](http://localhost:8180/share/) user admin, password admin, spend a little time creating sites
+Open Alfresco in browser with url [http://localhost:8080/share/](http://localhost:8080/share/) user admin, password admin, spend a little time creating sites
 uploading documents for later review of restored backup data.
 
 Stop Alfresco with Ctrl-C and purge Solr volume data, Alfresco repository volume and Postgres data volume are not purged.
@@ -72,4 +72,4 @@ Start Alfresco instance again
 
     ./run-instance.sh up
 
-Open Alfresco [http://localhost:8180/share/](http://localhost:8180/share/) and verify backup data are restored.
+Open Alfresco [http://localhost:8080/share/](http://localhost:8080/share/) and verify backup data are restored.
