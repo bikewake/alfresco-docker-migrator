@@ -12,6 +12,8 @@ RUN dnf -y install dos2unix
 RUN dnf -y install logrotate
 COPY logrotate-alfresco.conf /etc/logrotate.d/alfresco
 RUN dos2unix /etc/logrotate.d/alfresco
+RUN chmod  644 /etc/logrotate.d/alfresco
+RUN chown root:root /etc/logrotate.d/alfresco
 RUN dnf install -y cronie && dnf clean all
 
 RUN mkdir "/usr/local/tomcat"
