@@ -3,6 +3,10 @@
 
 ### Based on Alfresco docker deployment with build tools: Docker, GitBash
 
+Add rights to execute scripts
+
+    chmod +x *.sh
+
 First start Postgres Db, Activemq, with build of cron-logrotate-backup helping container with backup volume.
 
     ./first-base.sh up 
